@@ -37,6 +37,11 @@ generative-modeling-study/
 - **Disentanglement**: Higher β pushes the latent posterior toward N(0,I), encouraging independent latent factors
 - **Convolutional VAE**: Stride-2 convolutions for spatial downsampling; transposed convolutions for upsampling
 
+## PDF Report
+
+A fully executed notebook with all outputs is available as a PDF:  
+[`notebooks/beta_vae_study.pdf`](notebooks/beta_vae_study.pdf)
+
 ## Quick Start
 
 ```bash

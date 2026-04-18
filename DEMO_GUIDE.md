@@ -4,6 +4,11 @@
 
 This study implements a β-Variational Autoencoder from scratch in PyTorch and systematically explores the reconstruction–disentanglement trade-off by sweeping β ∈ {0.5, 1.0, 4.0, 10.0} on MNIST.
 
+## Quick View (No Setup Required)
+
+A fully executed notebook with all outputs is available as a PDF:  
+[`notebooks/beta_vae_study.pdf`](notebooks/beta_vae_study.pdf)
+
 ## Running the Demo
 
 ### 1. Setup (~2 min)

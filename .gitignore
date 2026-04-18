@@ -5,3 +5,7 @@ __pycache__/
 data/
 evidence/*.png
 .ipynb_checkpoints/
+notebooks/*.tex
+notebooks/*.html
+notebooks/*_files/
+notebooks/*_v1.ipynb
