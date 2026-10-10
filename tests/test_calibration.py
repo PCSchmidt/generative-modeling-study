@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 import torch
 from hypothesis import given, settings
@@ -19,6 +20,8 @@ from src.calibration.conformal import (
 )
 from src.calibration.generators import DDPM, VAE, train_ddpm, train_vae
 from src.calibration.metrics import Mahalanobis, auroc
+
+Array = npt.NDArray[np.float64]
 
 # ---------------------------------------------------------------------------------- exact data
 
@@ -43,8 +46,8 @@ def test_sampler_matches_density_via_importance_check() -> None:
     """E_p[f(x)] from samples equals the integral of f * density, for a simple f."""
     rng = np.random.default_rng(1)
 
-    def f(x: np.ndarray) -> np.ndarray:
-        return x[:, 0] ** 2 + x[:, 1]  # type: ignore[no-any-return]
+    def f(x: Array) -> Array:
+        return np.asarray(x[:, 0] ** 2 + x[:, 1], dtype=np.float64)
 
     mc = f(data.sample(200_000, rng)).mean()
     xs = np.linspace(-1.8, 2.8, 230)
@@ -64,7 +67,7 @@ def test_translate_moves_every_point() -> None:
 
 
 def test_threshold_known_values() -> None:
-    scores = np.arange(1.0, 10.0)  # n = 9
+    scores = np.arange(1.0, 10.0, dtype=np.float64)  # n = 9
     assert conformal_threshold(scores, 0.1) == 9.0  # ceil(10 * 0.9) = 9
     assert conformal_threshold(scores, 0.5) == 5.0  # ceil(10 * 0.5) = 5
     assert math.isinf(conformal_threshold(scores, 0.05))  # ceil(10 * 0.95) = 10 > n
@@ -150,12 +153,12 @@ def test_mahalanobis_basics() -> None:
 
 
 @pytest.fixture(scope="module")
-def tiny_data() -> tuple[np.ndarray, np.ndarray]:
+def tiny_data() -> tuple[Array, Array]:
     rng = np.random.default_rng(6)
     return data.sample(1500, rng), data.sample(200, rng)
 
 
-def test_vae_shapes_finite_and_deterministic(tiny_data: tuple[np.ndarray, np.ndarray]) -> None:
+def test_vae_shapes_finite_and_deterministic(tiny_data: tuple[Array, Array]) -> None:
     train, test = tiny_data
     v = train_vae(train, seed=0, steps=200)
     for out in (v.nll(test, k=16), v.recon_error(test)):
@@ -164,13 +167,13 @@ def test_vae_shapes_finite_and_deterministic(tiny_data: tuple[np.ndarray, np.nda
     assert v.latent_mean(test).shape == (200, 2)
 
 
-def test_vae_nll_is_an_upper_bound_on_true_nll(tiny_data: tuple[np.ndarray, np.ndarray]) -> None:
+def test_vae_nll_is_an_upper_bound_on_true_nll(tiny_data: tuple[Array, Array]) -> None:
     train, test = tiny_data
     v = train_vae(train, seed=0, steps=300)
     assert v.nll(test, k=32).mean() > (-data.true_logpdf(test)).mean()
 
 
-def test_ddpm_shapes_finite_and_deterministic(tiny_data: tuple[np.ndarray, np.ndarray]) -> None:
+def test_ddpm_shapes_finite_and_deterministic(tiny_data: tuple[Array, Array]) -> None:
     train, test = tiny_data
     d = train_ddpm(train, seed=0, steps=200)
     for out in (d.nll(test), d.dsm(test)):
