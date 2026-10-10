@@ -102,20 +102,75 @@ Two-dimensional synthetic data only; small models and three seeds; one kind of s
 
 ## Project Structure
 
+```mermaid
+flowchart LR
+    subgraph cal["New: uncertainty-calibration benchmark — src/calibration/"]
+        direction TB
+        D["data.py<br>two moons + exact density,<br>shift and OOD sets"]
+        G["generators.py<br>VAE · DDPM · NLL bounds"]
+        C["conformal.py<br>split-conformal threshold,<br>coverage, repeated draws"]
+        ME["metrics.py<br>AUROC · Mahalanobis"]
+        R["run.py<br>benchmark driver"]
+        R --> D
+        R --> G
+        R --> C
+        R --> ME
+    end
+
+    subgraph out["Outputs"]
+        direction TB
+        RES["results/calibration/<br>summary.json · per_seed.json<br>two figures"]
+        DOC["docs/RESULTS.md<br>every table and caveat"]
+    end
+
+    subgraph orig["Original study: β-VAE on MNIST"]
+        direction TB
+        M["src/models.py<br>Encoder · Decoder · BetaVAE"]
+        T["src/training.py<br>loss, training loop, evaluation"]
+        V["src/visualization.py<br>loss curves, reconstructions,<br>latent plots"]
+        NB["notebooks/<br>beta_vae_study.ipynb + .pdf<br>9-section study"]
+        T --> M
+        V --> M
+        NB --> M
+        NB --> T
+        NB --> V
+    end
+
+    subgraph tst["tests/ — 37 tests"]
+        direction TB
+        T1["test_models.py · 11"]
+        T2["test_training.py · 8"]
+        T3["test_calibration.py · 18<br>incl. property-based"]
+    end
+
+    subgraph cfg["Project config"]
+        direction TB
+        PY["pyproject.toml<br>dependencies, build, mypy"]
+        DK["Dockerfile<br>CPU image, runs the calibration tests"]
+        CI[".github/workflows/ci.yml<br>mypy + pytest on 3.10 and 3.12"]
+    end
+
+    tst -.->|"exercise"| orig
+    tst -.->|"exercise"| cal
+    R ==> RES
+    RES --> DOC
+
+    classDef old fill:#e8f1fb,stroke:#2f6db5,color:#102a43
+    classDef new fill:#e3f5e8,stroke:#2e8b57,color:#0f3b21
+    classDef test fill:#fff1d6,stroke:#c27c0e,color:#3d2500
+    classDef outp fill:#f2f2f2,stroke:#666,color:#222
+    class M,T,V,NB old
+    class D,G,C,ME,R new
+    class T1,T2,T3 test
+    class RES,DOC,PY,DK,CI outp
+    style orig fill:#f4f8fd,stroke:#2f6db5,color:#102a43
+    style cal fill:#f2faf4,stroke:#2e8b57,color:#0f3b21
+    style tst fill:#fff9ec,stroke:#c27c0e,color:#3d2500
+    style out fill:#fafafa,stroke:#666,color:#222
+    style cfg fill:#fafafa,stroke:#666,color:#222
 ```
-generative-modeling-study/
-├── src/
-│   ├── models.py          # β-VAE architecture (Encoder, Decoder, BetaVAE)
-│   ├── training.py         # Loss function, training loop, evaluation
-│   └── visualization.py    # Loss curves, reconstructions, latent plots
-├── notebooks/
-│   └── beta_vae_study.ipynb  # Full study notebook with 9 sections
-├── tests/
-│   ├── test_models.py       # 11 tests for model architecture
-│   └── test_training.py     # 8 tests for training utilities
-├── evidence/                # Exported PNG evidence from notebook runs
-└── pyproject.toml
-```
+
+*Blue is the original MNIST β-VAE study, green is the new calibration benchmark, amber is the test suite, grey is outputs and configuration. Arrows inside a group mean "uses"; dotted arrows mean "tests"; the thick arrow is the benchmark writing its results.*
 
 ## Key Concepts
 
