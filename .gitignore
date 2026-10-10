@@ -9,3 +9,8 @@ notebooks/*.tex
 notebooks/*.html
 notebooks/*_files/
 notebooks/*_v1.ipynb
+.venv/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+results/calibration/run.log
