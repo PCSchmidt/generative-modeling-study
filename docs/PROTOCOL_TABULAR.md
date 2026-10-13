@@ -55,4 +55,4 @@ Two datasets, one family of shifts each; 10 seeds that share the same underlying
 
 ## Deviations
 
-(none yet)
+1. **Split sizes clarified before any model was trained (2026-10-13).** The protocol text listed train/validation/calibration and omitted the in-distribution test part, and gave the Covertype caps ambiguously. As run: California Housing in-distribution rows are split train 50%, validation 10%, calibration 20%, test 20%. Covertype in-distribution rows are split 60%, 10%, 10%, 20% with caps of 30,000, 5,000, 5,000 and 10,000 rows; the OOD set is 10,000 rows (fewer if the three OOD classes have fewer rows in the pool). The conformal calibration draw is `min(1000, calibration size)` rows (California Housing's pools give about 1,400 calibration rows, so repeated draws overlap heavily). The scores, hypotheses and criteria are unchanged.

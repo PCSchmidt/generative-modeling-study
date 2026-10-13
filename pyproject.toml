@@ -19,7 +19,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "hypothesis>=6.100", "mypy>=1.10", "ruff>=0.5"]
+dev = ["pytest>=7.0", "hypothesis>=6.100", "mypy>=1.10", "ruff>=0.5", "scikit-learn>=1.3"]
+study = ["scikit-learn>=1.3"]
 
 [tool.setuptools.packages.find]
 include = ["src*"]
