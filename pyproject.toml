@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "generative-modeling-study"
-version = "0.1.0"
+version = "0.2.0"
 description = "A from-scratch study of β-VAE generative modeling on MNIST"
 authors = [{ name = "Chris Schmidt" }]
 license = { text = "MIT" }

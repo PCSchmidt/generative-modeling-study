@@ -71,6 +71,7 @@ Test NLL: VAE 0.69 ± 0.56, GMM 3.78 ± 0.37, single Gaussian 10.51 ± 0.39. Pai
 3. The "Sensorless Drive" dataset named in the original roadmap could not be downloaded (UCI and OpenML were unreachable from this machine), so Covertype stands in as the real-sensor-like tabular set.
 4. Rows of Covertype that are neighbours in the original data are not independent, so random splits favour the density models.
 5. Seeds share the same underlying rows, so the standard deviations understate dataset-level uncertainty.
+6. After the test run, typing and lint edits were made to `src/tabular` (type annotations, an unused-cast removal, a loop rewritten to use `.items()`); no computation changed, the unit tests pass, and the results were not regenerated.
 
 ## Reproduce
 
