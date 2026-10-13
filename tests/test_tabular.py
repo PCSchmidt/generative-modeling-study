@@ -16,7 +16,9 @@ def test_pool_assignment_is_deterministic_and_about_thirty_percent() -> None:
 
 def test_split_parts_are_disjoint_and_respect_caps() -> None:
     rows = np.arange(1000)
-    parts = _split(rows, np.random.default_rng(0), (0.6, 0.1, 0.1, 0.2), (300, 50, 50, 100))
+    parts = _split(
+        rows, np.random.default_rng(0), (0.6, 0.1, 0.1, 0.2), (300, 50, 50, 100)
+    )
     sizes = [len(p) for p in parts]
     assert sizes == [300, 50, 50, 100]
     allr = np.concatenate(parts)
@@ -24,7 +26,9 @@ def test_split_parts_are_disjoint_and_respect_caps() -> None:
 
 
 def test_split_without_caps_covers_the_requested_fractions() -> None:
-    parts = _split(np.arange(1000), np.random.default_rng(1), (0.5, 0.1, 0.2, 0.2), (10**9,) * 4)
+    parts = _split(
+        np.arange(1000), np.random.default_rng(1), (0.5, 0.1, 0.2, 0.2), (10**9,) * 4
+    )
     assert [len(p) for p in parts] == [500, 100, 200, 200]
 
 

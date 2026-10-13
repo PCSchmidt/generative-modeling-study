@@ -33,7 +33,7 @@ def _t(x: Array) -> torch.Tensor:
 
 
 def _np(x: torch.Tensor) -> Array:
-    return x.detach().cpu().numpy().astype(np.float64)  # type: ignore[no-any-return]
+    return x.detach().cpu().numpy().astype(np.float64)
 
 
 def _batches(n: int, size: int) -> list[slice]:
@@ -62,7 +62,9 @@ class VAE(nn.Module):
         mu, logvar = self.encode(x)
         z = mu + torch.randn_like(mu) * torch.exp(0.5 * logvar)
         mean, dlv = self.decode(z)
-        rec = 0.5 * (LOG_2PI * self.dim + dlv.sum(-1) + ((x - mean) ** 2 / dlv.exp()).sum(-1))
+        rec = 0.5 * (
+            LOG_2PI * self.dim + dlv.sum(-1) + ((x - mean) ** 2 / dlv.exp()).sum(-1)
+        )
         kl = 0.5 * (mu**2 + logvar.exp() - 1.0 - logvar).sum(-1)
         return rec + kl
 
@@ -78,7 +80,11 @@ class VAE(nn.Module):
             eps = torch.randn((k, *mu.shape), generator=gen, device=DEVICE)
             z = mu + eps * std
             mean, dlv = self.decode(z)
-            log_px_z = -0.5 * (LOG_2PI * self.dim + dlv.sum(-1) + ((xt - mean) ** 2 / dlv.exp()).sum(-1))
+            log_px_z = -0.5 * (
+                LOG_2PI * self.dim
+                + dlv.sum(-1)
+                + ((xt - mean) ** 2 / dlv.exp()).sum(-1)
+            )
             log_pz = -0.5 * (z**2 + LOG_2PI).sum(-1)
             log_qz = -0.5 * (eps**2 + LOG_2PI + logvar).sum(-1)
             lw = log_px_z + log_pz - log_qz
@@ -115,7 +121,14 @@ def _fit(
     model.eval()
 
 
-def train_vae(x: Array, seed: int, latent: int, steps: int = 8000, batch: int = 512, lr: float = 2e-3) -> VAE:
+def train_vae(
+    x: Array,
+    seed: int,
+    latent: int,
+    steps: int = 8000,
+    batch: int = 512,
+    lr: float = 2e-3,
+) -> VAE:
     torch.manual_seed(seed)
     model = VAE(x.shape[1], latent).to(DEVICE)
     _fit(model, lambda xb: model.neg_elbo(xb).mean(), _t(x), seed, steps, batch, lr)
@@ -129,7 +142,9 @@ class DDPM(nn.Module):
     betas: torch.Tensor
     abar: torch.Tensor
 
-    def __init__(self, dim: int, hidden: int, steps: int = 200, beta_max: float = 0.05) -> None:
+    def __init__(
+        self, dim: int, hidden: int, steps: int = 200, beta_max: float = 0.05
+    ) -> None:
         super().__init__()
         self.dim, self.T = dim, steps
         betas = torch.linspace(1e-4, beta_max, steps)
@@ -164,12 +179,21 @@ class DDPM(nn.Module):
             t = torch.arange(self.T, device=DEVICE)[:, None].expand(self.T, n)
             ab = self.abar[:, None, None]
             xt = ab.sqrt() * x0[None] + (1.0 - ab).sqrt() * eps
-            pred = self.eps(xt.reshape(-1, self.dim), t.reshape(-1)).reshape(self.T, n, self.dim)
+            pred = self.eps(xt.reshape(-1, self.dim), t.reshape(-1)).reshape(
+                self.T, n, self.dim
+            )
             out.append(((eps - pred) ** 2).sum(-1).mean(0))
         return _np(torch.cat(out))
 
 
-def train_ddpm(x: Array, seed: int, hidden: int, steps: int = 20000, batch: int = 512, lr: float = 2e-3) -> DDPM:
+def train_ddpm(
+    x: Array,
+    seed: int,
+    hidden: int,
+    steps: int = 20000,
+    batch: int = 512,
+    lr: float = 2e-3,
+) -> DDPM:
     torch.manual_seed(seed)
     model = DDPM(x.shape[1], hidden).to(DEVICE)
     _fit(model, model.loss, _t(x), seed, steps, batch, lr)
@@ -193,28 +217,42 @@ class EBM(nn.Module):
         self.energy = _mlp(d, hidden, 1, 3)
         self.log_c = nn.Parameter(torch.zeros(()))  # learnable log-normaliser
         cov = np.cov(x_train, rowvar=False) * noise_scale + 1e-6 * np.eye(d)
-        self.register_buffer("mean", torch.as_tensor(x_train.mean(0), dtype=torch.float32))
-        self.register_buffer("chol", torch.as_tensor(np.linalg.cholesky(cov), dtype=torch.float32))
-        self.register_buffer("log_det", torch.as_tensor(np.linalg.slogdet(cov)[1], dtype=torch.float32))
+        self.register_buffer(
+            "mean", torch.as_tensor(x_train.mean(0), dtype=torch.float32)
+        )
+        self.register_buffer(
+            "chol", torch.as_tensor(np.linalg.cholesky(cov), dtype=torch.float32)
+        )
+        self.register_buffer(
+            "log_det", torch.as_tensor(np.linalg.slogdet(cov)[1], dtype=torch.float32)
+        )
 
     def log_noise(self, x: torch.Tensor) -> torch.Tensor:
         z = torch.linalg.solve_triangular(self.chol, (x - self.mean).T, upper=False).T
-        return -0.5 * (z**2).sum(-1) - 0.5 * (self.log_det + self.dim * LOG_2PI)
+        out: torch.Tensor = -0.5 * (z**2).sum(-1) - 0.5 * (self.log_det + self.dim * LOG_2PI)
+        return out
 
     def sample_noise(self, n: int, gen: torch.Generator | None = None) -> torch.Tensor:
         eps = torch.randn((n, self.dim), generator=gen, device=self.mean.device)
-        return self.mean + eps @ self.chol.T
+        out: torch.Tensor = self.mean + eps @ self.chol.T
+        return out
 
     def logit(self, x: torch.Tensor) -> torch.Tensor:
-        return -self.energy(x).squeeze(-1) - self.log_c - self.log_noise(x)
+        out: torch.Tensor = -self.energy(x).squeeze(-1) - self.log_c - self.log_noise(x)
+        return out
 
     def nce_loss(self, xb: torch.Tensor) -> torch.Tensor:
         noise = self.sample_noise(len(xb))
-        return nn.functional.softplus(-self.logit(xb)).mean() + nn.functional.softplus(self.logit(noise)).mean()
+        return (
+            nn.functional.softplus(-self.logit(xb)).mean()
+            + nn.functional.softplus(self.logit(noise)).mean()
+        )
 
     @torch.no_grad()
     def score(self, x: Array) -> Array:
-        return np.concatenate([_np(self.energy(_t(x[sl])).squeeze(-1)) for sl in _batches(len(x), 5000)])
+        return np.concatenate(
+            [_np(self.energy(_t(x[sl])).squeeze(-1)) for sl in _batches(len(x), 5000)]
+        )
 
     @torch.no_grad()
     def val_loss(self, x: Array, seed: int = 0) -> float:
@@ -226,7 +264,14 @@ class EBM(nn.Module):
         return float((pos + neg).item())
 
 
-def train_ebm(x: Array, seed: int, hidden: int, steps: int = 10000, batch: int = 512, lr: float = 2e-3) -> EBM:
+def train_ebm(
+    x: Array,
+    seed: int,
+    hidden: int,
+    steps: int = 10000,
+    batch: int = 512,
+    lr: float = 2e-3,
+) -> EBM:
     torch.manual_seed(seed)
     model = EBM(x, hidden).to(DEVICE)
     _fit(model, model.nce_loss, _t(x), seed, steps, batch, lr)

@@ -13,9 +13,9 @@ A from-scratch study of **β-Variational Autoencoders (β-VAE)** on MNIST, explo
 | 4.0 | Moderate | Low | Good disentanglement–quality balance |
 | 10.0 | Highest | Lowest | Maximally disentangled, blurry outputs |
 
-## New: uncertainty-calibration benchmark (branch `calibration-benchmark`)
+## Uncertainty-calibration benchmark (synthetic, then real tabular data)
 
-**Status: new work, synthetic 2-D data only.** Everything above this heading is the original β-VAE study on MNIST and is unchanged. This section adds a second study, in `src/calibration/`, on a question the first one does not ask: *when a generative model says a point is unusual, can you trust how often it is right?*
+**Status: merged to `main`; the first study is synthetic 2-D data only, and a second, pre-registered study on real tabular data follows it ([below](#real-tabular-data-pre-registered)).** Everything above this heading is the original β-VAE study on MNIST and is unchanged. This section adds a second study, in `src/calibration/`, on a question the first one does not ask: *when a generative model says a point is unusual, can you trust how often it is right?*
 
 ### What is this? (plain-language overview)
 
@@ -96,9 +96,18 @@ python -m src.calibration.run --seeds 3          # the benchmark, several minute
 docker build -t gms-calibration . && docker run --rm --network none gms-calibration   # tests in a container
 ```
 
+### Real tabular data (pre-registered)
+
+Plan in [docs/PROTOCOL_TABULAR.md](docs/PROTOCOL_TABULAR.md) (pushed before any model was trained), choices made on development seeds from a separate row pool, ten test seeds run once; results and caveats in [docs/RESULTS_TABULAR.md](docs/RESULTS_TABULAR.md). It adds an energy-based model (trained by noise-contrastive estimation) and a Gaussian-mixture baseline, on California Housing (natural geographic shift) and Covertype (3 of 7 classes held out as novel).
+
+- **Coverage held on real data** for every score (0.897 to 0.907 at nominal 0.90).
+- **Novelty detection on Covertype is poor for all scores** (best AUROC 0.70; 64 to 75% of novel rows still fall inside the 90% region), and ranking is noisy across seeds because it depends on which classes are novel.
+- **My hypothesis that no deep score would beat a tuned mixture model was falsified** (the DDPM and VAE reconstruction error beat it by about 0.05 AUROC, the mixture capped at 16 components), and VAE reconstruction error, among the weakest scores in 2-D, was competitive here. A far better likelihood (VAE 0.69 against GMM 3.78 nats) did not give a better detector.
+- California Housing's shift is trivially detectable (latitude is a feature); coverage fell monotonically with distance in 10 of 10 seeds for every density score.
+
 ### Limitations
 
-Two-dimensional synthetic data only; small models and three seeds; one kind of shift (translation); hand-chosen OOD sets; plain split conformal only. **Not done:** the energy-based model, real data (UCI, California Housing), MAPIE and adaptive conformal variants, a tighter DDPM likelihood. The fixed-variance DDPM bound is loose, and the VAE learns only a smooth blob around the moons. See [docs/RESULTS.md](docs/RESULTS.md) for every table and what was and was not measured.
+Two-dimensional synthetic data only; small models and three seeds; one kind of shift (translation); hand-chosen OOD sets; plain split conformal only. **Not done:** MAPIE and adaptive conformal variants, a tighter DDPM likelihood, experiment tracking (Weights & Biases or aim). The energy-based model and real data (California Housing, Covertype) are covered by the tabular study; the roadmap's UCI Sensorless Drive set could not be downloaded here. The fixed-variance DDPM bound is loose, and the VAE learns only a smooth blob around the moons. See [docs/RESULTS.md](docs/RESULTS.md) for every table and what was and was not measured.
 
 ## Project Structure
 
