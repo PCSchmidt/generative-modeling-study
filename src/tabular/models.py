@@ -229,7 +229,9 @@ class EBM(nn.Module):
 
     def log_noise(self, x: torch.Tensor) -> torch.Tensor:
         z = torch.linalg.solve_triangular(self.chol, (x - self.mean).T, upper=False).T
-        out: torch.Tensor = -0.5 * (z**2).sum(-1) - 0.5 * (self.log_det + self.dim * LOG_2PI)
+        out: torch.Tensor = -0.5 * (z**2).sum(-1) - 0.5 * (
+            self.log_det + self.dim * LOG_2PI
+        )
         return out
 
     def sample_noise(self, n: int, gen: torch.Generator | None = None) -> torch.Tensor:

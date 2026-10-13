@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 OUT = Path("results/tabular")
 SCORES = [
@@ -24,7 +25,7 @@ DEEP = ["vae_recon_error", "vae_nll", "ddpm_denoising_error", "ebm_energy"]
 DENSITY = ["vae_nll", "ddpm_denoising_error", "ebm_energy", "gaussian", "gmm"]
 
 
-def boot_ci(d: np.ndarray, n: int = 2000) -> list[float]:
+def boot_ci(d: npt.NDArray[np.float64], n: int = 2000) -> list[float]:
     rng = np.random.default_rng(0)
     m = np.array([d[rng.integers(0, len(d), len(d))].mean() for _ in range(n)])
     return [float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))]

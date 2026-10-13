@@ -135,8 +135,8 @@ def evaluate(scores: dict[str, dict[str, Array]], seed: int) -> dict[str, Any]:
             q = conformal_threshold(
                 cal[rng.choice(len(cal), n_cal, replace=False)], ALPHA
             )
-            for s in cov:
-                cov[s].append(float(np.mean(by_set[s] <= q)))
+            for s, values in cov.items():
+                values.append(float(np.mean(by_set[s] <= q)))
         out[name] = {
             "coverage": {s: float(np.mean(v)) for s, v in cov.items()},
             "auroc": {
