@@ -145,11 +145,12 @@ flowchart LR
         NB --> V
     end
 
-    subgraph tst["tests/ — 37 tests"]
+    subgraph tst["tests/ — 43 tests"]
         direction TB
         T1["test_models.py · 11"]
         T2["test_training.py · 8"]
         T3["test_calibration.py · 18<br>incl. property-based"]
+        T4["test_tabular.py · 6"]
     end
 
     subgraph cfg["Project config"]
